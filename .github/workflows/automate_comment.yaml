@@ -12,13 +12,13 @@ on:
         description: 'Comment message'
         required: true
         type: string
-        default: 'can you please give us some update here ?'
+        default: 'This issue is not updated since long, can you please give us some update here ?'
       mention:
         description: 'Mention owner/assignee'
         required: true
         type: string
         default: 'owner'
-        choices: ['owner', 'assignee']
+        enum: ['owner', 'assignees']  # Add enum options
 
 jobs:
   list-issues:
@@ -65,10 +65,19 @@ jobs:
                 // Create the comment text with mention
                 const mention = '{{ inputs.mention }}';
                 let mentionText = '';
+
                 if (mention === 'owner') {
                   mentionText = `@${issue.user.login}`;
-                } else if (mention === 'assignee' && issue.assignee) {
-                  mentionText = `@${issue.assignee.login}`;
+                } else if (mention === 'assignees') {  // Check for 'assignees' option
+                  // Get the assignees of the issue
+                  const assignees = await github.rest.issues.listAssignees({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number
+                  });
+                  // Create a comma-separated list of assignees' usernames
+                  const assigneeUsernames = assignees.data.map(assignee => assignee.login);
+                  mentionText = `@${assigneeUsernames.join(', @')}`;
                 }
 
                 // Create a comment text to be posted on the issue

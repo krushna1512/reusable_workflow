@@ -6,12 +6,15 @@ on:
       days:
         description: 'Number of days for considering an issue outdated'
         required: true
+        type: number
       comment:
         description: 'Comment message'
         required: true
+        type: string
       mention:
         description: 'Mention owner/assignee'
         required: true
+        type: string
 
 jobs:
   list-issues:
@@ -75,8 +78,6 @@ jobs:
                   issue_number: issue.number,
                   body: commentText
                 });
-
-                console.log('Comment posted on issue', issue.number);
               }
             }
 

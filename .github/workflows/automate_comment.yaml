@@ -12,12 +12,13 @@ on:
         description: 'Comment message'
         required: true
         type: string
-        default: 'Hey'
+        default: 'can you please give us some update here ?'
       mention:
         description: 'Mention owner/assignee'
         required: true
         type: string
         default: 'owner'
+        choices: ['owner', 'assignee']
 
 jobs:
   list-issues:

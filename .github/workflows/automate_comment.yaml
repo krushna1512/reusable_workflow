@@ -12,7 +12,7 @@ on:
         description: 'Comment message'
         required: true
         type: string
-        default: 'This issue is not updated since 4 days, can you please give us some update here ?'
+        default: 'Hey'
       mention:
         description: 'Mention owner/assignee'
         required: true

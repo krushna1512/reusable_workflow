@@ -2,7 +2,8 @@ name: Automate Comments
 
 on:
   workflow_call:
-    inputs:
+  workflow_dispatch:
+   inputs:
       days:
         description: 'Number of days for considering an issue outdated'
         required: true
@@ -12,13 +13,13 @@ on:
         description: 'Comment message'
         required: true
         type: string
-        default: 'This issue is not updated since long, can you please give us some update here ?'
+        default: 'This issue is not updated since 4 days, can you please give us some update here ?'
       mention:
         description: 'Mention owner/assignee'
         required: true
-        type: string
+        type: choice
         default: 'owner'
-        enum: ['owner', 'assignees']  # Add enum options
+        options: ['owner', 'assignees']
 
 jobs:
   list-issues:
@@ -68,7 +69,7 @@ jobs:
 
                 if (mention === 'owner') {
                   mentionText = `@${issue.user.login}`;
-                } else if (mention === 'assignees') {  // Check for 'assignees' option
+                } else if (mention === 'assignees') {
                   // Get the assignees of the issue
                   const assignees = await github.rest.issues.listAssignees({
                     owner: context.repo.owner,

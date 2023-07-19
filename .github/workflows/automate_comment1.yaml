@@ -52,14 +52,14 @@ jobs:
 
               // Calculate the time difference in milliseconds between the last update and the current time
               const timeDifference = currentDate - issueLastUpdated;
-              const minutesInMilliseconds = parseInt('{{ inputs.minutes }}') * 60 * 1000; // Use the input value here
+              const minutesInMilliseconds = inputs.minutes * 60 * 1000; // Use the input value here
 
               // Check if the issue hasn't been updated in the specified number of minutes
               if (timeDifference >= minutesInMilliseconds) {
                 console.log('Issue ' + issue.number + ' needs an update');
 
                 // Create the comment text with mention
-                const mention = '{{ inputs.mention }}';
+                const mention = inputs.mention;
                 let mentionText = '';
 
                 if (mention === 'owner') {

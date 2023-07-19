@@ -1,19 +1,19 @@
-name: Automate Comments1
+name: Automate Comment1
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       minutes:
         description: 'Number of minutes for considering an issue outdated'
-        type: number
+        required: true
         default: 240
       comment:
         description: 'Comment message'
-        type: string
+        required: true
         default: 'This issue has not been updated recently, could you please provide an update?'
       mention:
         description: 'Mention owner/assignee'
-        type: string
+        required: true
         default: 'owner'
 
 jobs:
@@ -52,14 +52,14 @@ jobs:
 
               // Calculate the time difference in milliseconds between the last update and the current time
               const timeDifference = currentDate - issueLastUpdated;
-              const minutesInMilliseconds = inputs.minutes * 60 * 1000; // Use the input value here
+              const minutesInMilliseconds = parseInt(process.env.INPUT_MINUTES) * 60 * 1000; // Use the input value here
 
               // Check if the issue hasn't been updated in the specified number of minutes
               if (timeDifference >= minutesInMilliseconds) {
                 console.log('Issue ' + issue.number + ' needs an update');
 
                 // Create the comment text with mention
-                const mention = inputs.mention;
+                const mention = process.env.INPUT_MENTION;
                 let mentionText = '';
 
                 if (mention === 'owner') {
@@ -77,7 +77,7 @@ jobs:
                 }
 
                 // Create a comment text to be posted on the issue
-                const commentText = `Hey ${mentionText}, ${inputs.comment}`;
+                const commentText = `Hey ${mentionText}, ${process.env.INPUT_COMMENT}`;
                 console.log('Comment text:', commentText);
 
                 // Post a comment on the issue

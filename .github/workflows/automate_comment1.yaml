@@ -3,10 +3,10 @@ name: Automate Comments1
 on:
   workflow_call:
     inputs:
-      days:
-        description: 'Number of days for considering an issue outdated'      
+      minutes:
+        description: 'Number of minutes for considering an issue outdated'
         type: number
-        default: 4
+        default: 240
       comment:
         description: 'Comment message'
         type: string
@@ -15,7 +15,6 @@ on:
         description: 'Mention owner/assignee'
         type: string
         default: 'owner'
-      
 
 jobs:
   list-issues:
@@ -53,10 +52,10 @@ jobs:
 
               // Calculate the time difference in milliseconds between the last update and the current time
               const timeDifference = currentDate - issueLastUpdated;
-              const daysInMilliseconds = parseInt('{{ inputs.days }}') * 60 * 1000; // Use the input value here
+              const minutesInMilliseconds = parseInt('{{ inputs.minutes }}') * 60 * 1000; // Use the input value here
 
-              // Check if the issue hasn't been updated in the specified number of days
-              if (timeDifference >= daysInMilliseconds) {
+              // Check if the issue hasn't been updated in the specified number of minutes
+              if (timeDifference >= minutesInMilliseconds) {
                 console.log('Issue ' + issue.number + ' needs an update');
 
                 // Create the comment text with mention

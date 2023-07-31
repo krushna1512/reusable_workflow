@@ -4,22 +4,16 @@ on:
   workflow_call:
     inputs:
       days:
-        description: 'Number of days for considering an issue outdated'
-        required: true
-        type: number
-        default: 4
-      comment:
-        description: 'Comment message'
         required: true
         type: string
-        default: 'This issue is not updated since 4 minutes, can you please give us some update here ?'
         
-      mention:
-        description: 'Mention owner/assignee'
+      comment:
         required: true
         type: string
-        default: 'owner'
-      
+        
+      mention:       
+        required: true
+        type: string
 
 jobs:
   list-issues:

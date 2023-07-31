@@ -1,4 +1,4 @@
-name: Automate Comments 1
+name: Automate Comments 
 
 on:
   workflow_dispatch:
@@ -13,12 +13,10 @@ on:
         required: true
         type: string
         
-        
       mention:
         description: 'Mention owner/assignee'
         required: true
         type: string
-       
 
 jobs:
   list-issues:
@@ -55,7 +53,7 @@ jobs:
               const currentDate = new Date();
 
               // Get the number of minutes from the input parameter
-              const minutes = parseInt('{{ inputs.minutes }}');
+              const minutes = parseInt(process.env.INPUT_MINUTES);
 
               // Calculate the time difference in milliseconds between the last update and the current time
               const timeDifference = currentDate - issueLastUpdated;
@@ -66,7 +64,7 @@ jobs:
                 console.log('Issue ' + issue.number + ' needs an update');
 
                 // Create the comment text with mention
-                const mention = '{{ inputs.mention }}';
+                const mention = process.env.INPUT_MENTION;
                 let mentionText = '';
 
                 if (mention === 'owner') {
@@ -84,7 +82,7 @@ jobs:
                 }
 
                 // Create a comment text to be posted on the issue
-                const commentText = `Hey ${mentionText}, ${inputs.comment}`;
+                const commentText = `Hey ${mentionText}, ${process.env.INPUT_COMMENT}`;
                 console.log('Comment text:', commentText);
 
                 // Post a comment on the issue

@@ -1,7 +1,7 @@
 name: Automate Comments 
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       minutes:
         description: 'Number of minutes for considering an issue outdated'

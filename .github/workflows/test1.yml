@@ -60,13 +60,14 @@ jobs:
 
                 // Create a comment text to be posted on the issue
                 const owner = context.repo.owner;
-                const assigneesList = issue.assignees.map(assignee => `@${assignee.login}`).join(' ');
+                const assignees = issue.assignees.map(assignee => `@${assignee.login}`);
+                const assigneesList = assignees.join(' ');
                 let commentText = `Hey ${assigneesList}, ${{ inputs.comment }}`;
 
                 // Check the parameter to tag owner or assignee
                 if (${{ inputs.owner_or_assignee }} === 'owner') {
                   commentText += ` - @${owner}`;
-                } else if (${{ inputs.owner_or_assignee }} === 'assignee') {
+                } else if (${{ inputs.owner_or_assignee }} === 'assignee' && assignees.length > 0) {
                   commentText += ` - ${assigneesList}`;
                 }
 

@@ -6,7 +6,7 @@ on:
       minutes:
         description: 'Number of minutes for considering an issue outdated'
         required: true
-        type: string
+        type: number
      
       comment:
         description: 'Comment message'

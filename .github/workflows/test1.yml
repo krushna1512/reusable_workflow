@@ -1,4 +1,4 @@
-name: test 1
+name: Test 1
 
 on:
   workflow_dispatch:
@@ -64,7 +64,7 @@ jobs:
                 let commentText = 'Hey';
                 if (${{ inputs.tag }} === 'owner') {
                   commentText += ` @${issue.user.login},`;
-                } else if (${{ inputs.tag }} === 'assignee' && issue.assignees.length > 0) {
+                } else if (${{ inputs.tag }} === 'assignee' && issue.assignees && issue.assignees.length > 0) {
                   const assigneesList = issue.assignees.map(assignee => ` @${assignee.login}`).join(',');
                   commentText += `${assigneesList},`;
                 }

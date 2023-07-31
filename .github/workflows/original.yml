@@ -7,7 +7,12 @@ on:
         description: 'Number of minutes for considering an issue outdated'
         required: true
         type: number
-     
+        
+      comment: 
+        description: 'Comment message'
+        required: true
+        type: string
+       
    
 
 jobs:

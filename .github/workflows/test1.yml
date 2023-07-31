@@ -1,4 +1,4 @@
-name: test 1
+name: Original
 
 on:
   workflow_dispatch:
@@ -13,8 +13,8 @@ on:
         required: true
         type: string
 
-      tag:
-        description: 'Tag to use in the comment (owner or assignee)'
+      mention:
+        description: 'Mention to use in the comment (owner or assignees)'
         required: true
         type: string
 
@@ -60,16 +60,32 @@ jobs:
               if (timeDifference >= fourDaysInMilliseconds) {
                 console.log('Issue ' + issue.number + ' needs an update');
 
-                // Create a comment text to be posted on the issue
-                let commentText = 'Hey';
-                if (${{ inputs.tag }} === 'owner') {
-                  commentText += ` @${issue.user.login},`;
-                } else if (${{ inputs.tag }} === 'assignee' && issue.assignees && issue.assignees.length > 0) {
-                  const assigneesList = issue.assignees.map(assignee => ` @${assignee.login}`).join(',');
-                  commentText += `${assigneesList},`;
-                }
-                commentText += ` ${inputs.comment}`;
+                // Create the comment text with mention
+                const mention = '${{ inputs.mention }}';
+                let mentionText = '';
 
+                if (mention === 'owner') {
+                  mentionText = `@${issue.user.login}`;
+                } else if (mention === 'assignees') {
+                  // Get the comments of the issue
+                  const comments = await github.rest.issues.listComments({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number
+                  });
+
+                  // Extract assignees' usernames from comments
+                  const assigneeUsernames = [];
+                  comments.data.forEach(comment => {
+                    if (comment.user.type === 'User') {
+                      assigneeUsernames.push(comment.user.login);
+                    }
+                  });
+                  mentionText = `@${assigneeUsernames.join(', @')}`;
+                }
+
+                // Create a comment text to be posted on the issue
+                const commentText = `Hey ${mentionText}, ${inputs.comment}`;
                 console.log('Comment text:', commentText);
 
                 // Post a comment on the issue

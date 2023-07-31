@@ -59,7 +59,7 @@ jobs:
 
                 // Create a comment text to be posted on the issue
                 const assigneesList = issue.assignees.map(assignee => `@${assignee.login}`).join(' ');
-                const commentText = `Hey ${assigneesList}, This issue is not updated since 4 days, can you please give us some update here?`;
+                const commentText = `Hey ${assigneesList}, ${{ inputs.comment }}`;
                 console.log('Comment text:', commentText);
 
                 // Post a comment on the issue

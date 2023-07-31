@@ -1,4 +1,4 @@
-name: Original 1
+name: Original
 
 on:
   workflow_dispatch:
@@ -7,14 +7,12 @@ on:
         description: 'Number of minutes for considering an issue outdated'
         required: true
         type: number
-
       comment: 
         description: 'Comment message'
         required: true
         type: string
-
-      mention:
-        description: 'Mention to use in the comment (owner or assignees)'
+      owner_or_assignee: 
+        description: 'Tag owner or assignee in the comment'
         required: true
         type: string
 
@@ -60,32 +58,18 @@ jobs:
               if (timeDifference >= fourDaysInMilliseconds) {
                 console.log('Issue ' + issue.number + ' needs an update');
 
-                // Create the comment text with mention
-                const mention = '${{ inputs.mention }}';
-                let mentionText = '';
+                // Create a comment text to be posted on the issue
+                const owner = context.repo.owner;
+                const assigneesList = issue.assignees.map(assignee => `@${assignee.login}`).join(' ');
+                let commentText = `Hey ${assigneesList}, ${{ inputs.comment }}`;
 
-                if (mention === 'owner') {
-                  mentionText = `@${issue.user.login}`;
-                } else if (mention === 'assignees') {
-                  // Get the comments of the issue
-                  const comments = await github.rest.issues.listComments({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: issue.number
-                  });
-
-                  // Extract assignees' usernames from comments
-                  const assigneeUsernames = [];
-                  comments.data.forEach(comment => {
-                    if (comment.user.type === 'User') {
-                      assigneeUsernames.push(comment.user.login);
-                    }
-                  });
-                  mentionText = `@${assigneeUsernames.join(', @')}`;
+                // Check the parameter to tag owner or assignee
+                if (${{ inputs.owner_or_assignee }} === 'owner') {
+                  commentText += ` - @${owner}`;
+                } else if (${{ inputs.owner_or_assignee }} === 'assignee') {
+                  commentText += ` - ${assigneesList}`;
                 }
 
-                // Create a comment text to be posted on the issue
-                const commentText = `Hey ${mentionText}, ${inputs.comment}`;
                 console.log('Comment text:', commentText);
 
                 // Post a comment on the issue

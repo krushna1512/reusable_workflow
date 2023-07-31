@@ -3,7 +3,7 @@ name: Automate Comments
 on:
   workflow_dispatch:
     inputs:
-      days:
+      minutes:
         description: 'Number of days for considering an issue outdated'
         required: true
         type: number
@@ -57,7 +57,7 @@ jobs:
 
               // Calculate the time difference in milliseconds between the last update and the current time
               const timeDifference = currentDate - issueLastUpdated;
-              const daysInMilliseconds = parseInt('{{ inputs.days }}') * 24 * 60 * 60 * 1000; // Use the input value here
+              const daysInMilliseconds = ${{ inputs.minutes }} * 60 * 1000; // Use the input value here
 
               // Check if the issue hasn't been updated in the specified number of days
               if (timeDifference >= daysInMilliseconds) {

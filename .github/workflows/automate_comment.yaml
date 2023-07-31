@@ -1,27 +1,25 @@
 name: Automate Comments
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       days:
         description: 'Number of days for considering an issue outdated'
         required: true
         type: number
-        default: 4
+    
       comment:
         description: 'Comment message'
         required: true
         type: string
-        default: 'This issue is not updated since 4 days, can you please give us some update here ?'
+       
         
-  workflow_dispatch:
-   inputs:
       mention:
         description: 'Mention owner/assignee'
         required: true
-        type: choice
-        default: 'owner'
-        options: ['owner', 'assignees']
+        type: string
+        
+      
 
 jobs:
   list-issues:

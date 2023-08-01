@@ -15,10 +15,8 @@ on:
         description: 'Select whether to mention owner or assignee in the comment'
         required: true
         type: string
-        default: 'owner'
-        options:
-          - 'owner'
-          - 'assignee'
+      
+        
 
 jobs:
   list-issues:

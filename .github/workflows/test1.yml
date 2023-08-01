@@ -11,10 +11,14 @@ on:
         description: 'Comment message'
         required: true
         type: string
-      owner_or_assignee: 
-        description: 'Tag owner or assignee in the comment'
+      owner_or_assignee:
+        description: 'Select whether to mention owner or assignee in the comment'
         required: true
         type: string
+        default: 'owner'
+        options:
+          - 'owner'
+          - 'assignee'
 
 jobs:
   list-issues:
@@ -58,19 +62,20 @@ jobs:
               if (timeDifference >= fourDaysInMilliseconds) {
                 console.log('Issue ' + issue.number + ' needs an update');
 
+                // Determine whether to mention owner or assignee in the comment
+                const mentionType = '${{ inputs.owner_or_assignee }}';
+
                 // Create a comment text to be posted on the issue
-                const owner = context.repo.owner;
-                const assignees = issue.assignees.map(assignee => `@${assignee.login}`);
-                const assigneesList = assignees.join(' ');
-                let commentText = `Hey ${assigneesList}, ${{ inputs.comment }}`;
-
-                // Check the parameter to tag owner or assignee
-                if (${{ inputs.owner_or_assignee }} === 'owner') {
-                  commentText += ` - @${owner}`;
-                } else if (${{ inputs.owner_or_assignee }} === 'assignee' && assignees.length > 0) {
-                  commentText += ` - ${assigneesList}`;
+                let commentText;
+                if (mentionType === 'owner') {
+                  commentText = `Hey @${issue.user.login}, ${{ inputs.comment }}`;
+                } else if (mentionType === 'assignee') {
+                  const assigneesList = issue.assignees.map(assignee => `@${assignee.login}`).join(' ');
+                  commentText = `Hey ${assigneesList}, ${{ inputs.comment }}`;
+                } else {
+                  console.log('Invalid mention type selected.');
+                  continue;
                 }
-
                 console.log('Comment text:', commentText);
 
                 // Post a comment on the issue

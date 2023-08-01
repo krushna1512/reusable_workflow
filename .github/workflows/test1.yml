@@ -56,7 +56,7 @@ jobs:
               const timeDifference = currentDate - issueLastUpdated;
               const DaysInMilliseconds = ${{ inputs.day }} * 24 * 60 * 60 * 1000; //  days in milliseconds
 
-              // Check if the issue hasn't been updated in the last 4 days
+              // Check if the issue hasn't been updated in the last days
               if (timeDifference >= DaysInMilliseconds) {
                 console.log('Issue ' + issue.number + ' needs an update');
 

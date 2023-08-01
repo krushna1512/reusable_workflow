@@ -3,8 +3,8 @@ name: Original 1
 on:
   workflow_call:
     inputs:
-      minutes:
-        description: 'Number of minutes for considering an issue outdated'
+      days:
+        description: 'Number of days for considering an issue outdated'
         required: true
         type: number
       comment: 
@@ -54,7 +54,7 @@ jobs:
 
               // Calculate the time difference in milliseconds between the last update and the current time
               const timeDifference = currentDate - issueLastUpdated;
-              const fourDaysInMilliseconds = ${{ inputs.minutes }} * 60 * 1000; // 4 days in milliseconds
+              const fourDaysInMilliseconds = ${{ inputs.dasys }} * 60 * 1000; // 4 days in milliseconds
 
               // Check if the issue hasn't been updated in the last 4 days
               if (timeDifference >= fourDaysInMilliseconds) {

@@ -1,7 +1,7 @@
 name: Original 1
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       day:
         description: 'Number of days for considering an issue outdated'

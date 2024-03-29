@@ -1,0 +1,20 @@
+name: git-conflict-check
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  git-conflict-check:
+    name: Audit Git conflict
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run Git conflict audit
+        id: audit-gitconflict
+        run: sh ./.aws/git-conflict.sh

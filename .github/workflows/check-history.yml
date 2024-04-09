@@ -15,8 +15,9 @@ jobs:
     - name: Compare history
       id: history
       run: |
-        git checkout master
-        TAG_META=$( git tag ${{ github.event.release.tag_name }} --contains master )
+        git checkout main
+        TAG_META=$( git tag ${{ github.event.release.tag_name }} --contains main )
+        echo "Release Tag Name: ${{ github.event.release.tag_name }}"
         echo "${TAG_META}"
         if [ "${TAG_META}"=="${{ github.event.release.tag_name }}" ]; then
           echo "clean"

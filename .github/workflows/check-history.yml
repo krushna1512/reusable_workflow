@@ -4,6 +4,12 @@ on:
   workflow_call:
 
 jobs:
+ check-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Hello
+        run: echo "hello"
+
   check-history:
     name: Check if release is behind
     runs-on: ubuntu-latest

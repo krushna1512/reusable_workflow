@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
- check-release:
+  check-release:
     runs-on: ubuntu-latest
     steps:
       - name: Print Hello

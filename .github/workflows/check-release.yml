@@ -14,3 +14,5 @@ jobs:
     steps:
       - name: Print Release Value
         run: echo "Release value is:${{ inputs.release }}"
+    outputs:
+      prefix: ${{ steps.release_prefix.outputs.prefix }}

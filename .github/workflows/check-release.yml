@@ -22,5 +22,7 @@ jobs:
         gh release view ${{ github.event.release.tag_name }} --json isPrerelease,isDraft --jq 'if .isPrerelease==false and .isDraft==false then "release" elif .isPrerelease==true and .isDraft==false then "prerelease" else "draft" end' >> release-prefix.json
         echo "prefix is `cat release-prefix.json`"
         echo "prefix=`cat release-prefix.json`" >> $GITHUB_OUTPUT
+    - id: step1
+      run: echo "output=release" >> $GITHUB_OUTPUT
     outputs:
       prefix: ${{ steps.release_prefix.outputs.prefix }}

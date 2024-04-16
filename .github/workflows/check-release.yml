@@ -8,14 +8,19 @@ on:
         type: string
 
 jobs:
-  check-release:
+ check-release:
     name: Release Prefix
     runs-on: ubuntu-latest
+    #     This is to know if the reference of the trigger i.e the tag is a release or prerelease. Later to avoid any release which are not created or in Draft state.
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Print Release Value
-        run: echo "Release value is:${{ inputs.release }}"
-        id: release_prefix
-      - id: step1
-        run: echo "prefix" >> $GITHUB_OUTPUT
+    - uses: actions/checkout@v4
+    - name: Check the release details
+      id: release_prefix
+      run: |
+        gh release view ${{ github.event.release.tag_name }} --json isPrerelease,isDraft --jq 'if .isPrerelease==false and .isDraft==false then "release" elif .isPrerelease==true and .isDraft==false then "prerelease" else "draft" end' >> release-prefix.json
+        echo "prefix is `cat release-prefix.json`"
+        echo "prefix=`cat release-prefix.json`" >> $GITHUB_OUTPUT
     outputs:
       prefix: ${{ steps.release_prefix.outputs.prefix }}

@@ -14,5 +14,8 @@ jobs:
     steps:
       - name: Print Release Value
         run: echo "Release value is:${{ inputs.release }}"
+        id: release_prefix
+      - id: step1
+        run: echo "prefix" >> $GITHUB_OUTPUT
     outputs:
       prefix: ${{ steps.release_prefix.outputs.prefix }}

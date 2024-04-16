@@ -1,11 +1,16 @@
 name: check release
 on:
   workflow_call:
+    inputs:
+      release:
+        description: 'Number of days for considering an issue outdated'
+        required: true
+        type: string
 
 jobs:
- check-release:
-  name: Release Prefix
-  runs-on: ubuntu-latest
-  steps:
-    - name: Print Release Value
-      run: echo "Release value is: ${{ inputs.release }}"
+  check-release:
+    name: Release Prefix
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Release Value
+        run: echo "Release value is: ${{ inputs.release }}"

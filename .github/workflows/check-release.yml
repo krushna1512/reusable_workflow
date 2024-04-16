@@ -13,4 +13,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print Release Value
-        run: echo "Release value is: ${{ inputs.release }}"
+        run: echo "Release value is:${{ inputs.release }}"

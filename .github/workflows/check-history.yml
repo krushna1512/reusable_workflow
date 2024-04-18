@@ -2,6 +2,10 @@ name: History Check
 
 on:
   workflow_call:
+    outputs:
+      prefix:
+        description: 'prefix'
+        value: ${{ jobs.check-history.outputs.clean}}
 
 jobs:
 

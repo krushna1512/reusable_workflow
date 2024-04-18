@@ -9,7 +9,7 @@ on:
     outputs:
       prefix:
         description: 'prefix'
-        value: ${{ jobs.check-release.output.prefix}}
+        value: ${{ jobs.check-release.outputs.prefix}}
 
 jobs:
  check-release:

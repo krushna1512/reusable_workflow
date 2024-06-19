@@ -19,15 +19,14 @@ jobs:
     - name: Setting up deployment file
       env:
         REPOSITORY: ${{ github.event.repository.ssh_url }}
-        DEPLOY_TO: ${{ vars.DEPLOY_TO }}
-        DEPLOY_ENVIRONMENT: ${{ github.event.inputs.deploy-environment }}
+        KEY: ${{ secrets.KEY }}
+       
       run: |
         echo "Repository URL: $REPOSITORY"
-        echo "Deploy to: $DEPLOY_TO"
-        echo "Deploy environment: $DEPLOY_ENVIRONMENT"
+        echo "Deploy environment: $KEY"
 
     - name: Print environment variables
       run: |
         echo "REPOSITORY is set to $REPOSITORY"
-        echo "DEPLOY_TO is set to $DEPLOY_TO"
-        echo "DEPLOY_ENVIRONMENT is set to $DEPLOY_ENVIRONMENT"
+        echo "DEPLOY_TO is set to $KEY"
+    

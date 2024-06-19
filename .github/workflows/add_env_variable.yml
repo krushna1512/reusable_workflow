@@ -23,18 +23,20 @@ jobs:
       - name: Set environment variables
         run: |
           ENVIRONMENT=${{ github.event.inputs['deploy-environment'] }}
-          UPPER_ENVIRONMENT=$(echo $ENVIRONMENT | tr '[:lower:]' '[:upper:]')
-          GMAP_KEY_NAME="NEXT_PUBLIC_GMAP_KEY_${UPPER_ENVIRONMENT}"
-          GMAP_KEY_VALUE="${{ secrets[NEXT_PUBLIC_GMAP_KEY_PRODUCTION] }}"
           
-          if [ "$ENVIRONMENT" == "staging" ]; then
-            GMAP_KEY_VALUE="${{ secrets.NEXT_PUBLIC_GMAP_KEY_STAGING }}"
+          if [ "$ENVIRONMENT" == "production" ]; then
+            echo "NEXT_PUBLIC_ENV=\"$ENVIRONMENT\"" > .env.local
+            echo "NEXT_PUBLIC_GMAP_KEY=${{ secrets.NEXT_PUBLIC_GMAP_KEY_PRODUCTION }}" >> .env.local
+          elif [ "$ENVIRONMENT" == "staging" ]; then
+            echo "NEXT_PUBLIC_ENV=\"$ENVIRONMENT\"" > .env.local
+            echo "NEXT_PUBLIC_GMAP_KEY=${{ secrets.NEXT_PUBLIC_GMAP_KEY_STAGING }}" >> .env.local
           elif [ "$ENVIRONMENT" == "secondstaging" ]; then
-            GMAP_KEY_VALUE="${{ secrets.NEXT_PUBLIC_GMAP_KEY_SECONDSTAGING }}"
+            echo "NEXT_PUBLIC_ENV=\"$ENVIRONMENT\"" > .env.local
+            echo "NEXT_PUBLIC_GMAP_KEY=${{ secrets.NEXT_PUBLIC_GMAP_KEY_SECONDSTAGING }}" >> .env.local
+          else
+            echo "Error: Invalid environment specified"
+            exit 1
           fi
-          
-          echo "NEXT_PUBLIC_ENV=\"$ENVIRONMENT\"" > .env.local
-          echo "NEXT_PUBLIC_GMAP_KEY=$GMAP_KEY_VALUE" >> .env.local
 
       - name: Display .env.local
         run: cat .env.local

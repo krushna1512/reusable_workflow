@@ -1,0 +1,33 @@
+name: Deploy Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy-environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Setting up deployment file
+      env:
+        REPOSITORY: ${{ github.event.repository.ssh_url }}
+        DEPLOY_TO: ${{ vars.DEPLOY_TO }}
+        DEPLOY_ENVIRONMENT: ${{ github.event.inputs.deploy-environment }}
+      run: |
+        echo "Repository URL: $REPOSITORY"
+        echo "Deploy to: $DEPLOY_TO"
+        echo "Deploy environment: $DEPLOY_ENVIRONMENT"
+
+    - name: Print environment variables
+      run: |
+        echo "REPOSITORY is set to $REPOSITORY"
+        echo "DEPLOY_TO is set to $DEPLOY_TO"
+        echo "DEPLOY_ENVIRONMENT is set to $DEPLOY_ENVIRONMENT"

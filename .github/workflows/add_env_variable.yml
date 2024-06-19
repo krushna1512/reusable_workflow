@@ -1,0 +1,29 @@
+name: Update .env.local
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy-environment:
+        description: 'Deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - 'production'
+          - 'staging'
+          - 'secondstaging'
+
+jobs:
+  update-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set environment variables
+        run: |
+          echo "NEXT_PUBLIC_ENV=${{ github.event.inputs['deploy-environment'] }}" >> .env.local
+          echo "NEXT_PUBLIC_GMAP_KEY=${{ secrets['NEXT_PUBLIC_GMAP_KEY_'${{ github.event.inputs['deploy-environment'] | upper }}] }}" >> .env.local
+
+      - name: Display .env.local
+        run: cat .env.local

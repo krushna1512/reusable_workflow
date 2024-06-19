@@ -23,7 +23,7 @@ jobs:
        
       run: |
         echo "Repository URL: $REPOSITORY"
-        echo "Deploy environment: $KEY"
+        echo "KEY: $KEY"
 
   
     

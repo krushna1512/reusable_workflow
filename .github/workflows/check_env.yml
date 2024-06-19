@@ -25,8 +25,5 @@ jobs:
         echo "Repository URL: $REPOSITORY"
         echo "Deploy environment: $KEY"
 
-    - name: Print environment variables
-      run: |
-        echo "REPOSITORY is set to $REPOSITORY"
-        echo "DEPLOY_TO is set to $KEY"
+  
     

@@ -19,7 +19,7 @@ jobs:
       env:
         REDMINE_ISSUE_ID: ${{ github.event.inputs.redmine_issue_id }}
         REDMINE_API_KEY: ${{ secrets.REDMINE_API_KEY }}
-        DEPLOYMENT_STATUS: ${{ needs.deployment.outputs.deployment_status }}
+        DEPLOYMENT_STATUS: ${{ inputs.deployment_status }}
         DEPLOY_ENVIRONMENT: ${{ github.event.inputs.deploy_environment }}
         COMMIT_ID: ${{ github.sha }}
         WORKFLOW_LOGS_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"

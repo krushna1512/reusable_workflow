@@ -3,10 +3,6 @@ name: Redmine Comment
 on:
   workflow_call:
     inputs:
-      deployment_status:
-        description: 'Deployment status'
-        required: true
-        type: string
       redmine_issue_id:
         description: "Redmine Issue ID"
         required: true

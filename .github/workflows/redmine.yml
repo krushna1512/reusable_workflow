@@ -6,6 +6,10 @@ on:
        description: 'Deployment status'
        required: true
        type: string
+     redmine_issue_id:
+       description: "Redmine Issue ID"
+       required: true
+       type: string
      
 jobs:
   redmine_notification:
@@ -17,7 +21,7 @@ jobs:
 
     - name: Send Redmine Comment
       env:
-        REDMINE_ISSUE_ID: ${{ github.event.inputs.redmine_issue_id }}
+        REDMINE_ISSUE_ID: ${{ inputs.redmine_issue_id }}
         REDMINE_API_KEY: ${{ secrets.REDMINE_API_KEY }}
         DEPLOYMENT_STATUS: ${{ inputs.deployment_status }}
         DEPLOY_ENVIRONMENT: ${{ github.event.inputs.deploy_environment }}

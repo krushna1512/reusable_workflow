@@ -1,6 +1,11 @@
 name: Redmine COmment
 on:
   workflow_call:
+   inputs:
+     deployment_status:
+       description: 'Deployment status'
+       required: true
+       type: string
      
 jobs:
   redmine_notification:

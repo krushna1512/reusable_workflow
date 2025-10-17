@@ -6,7 +6,7 @@ on:
       redmine_issue_id:
         description: "Redmine Issue ID"
         required: true
-        type: string
+        type: number
       deployment_note:
         description: "Redmine deployment note"
         required: true

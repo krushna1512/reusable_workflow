@@ -1,7 +1,7 @@
 name: Redmine Comment
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       redmine_issue_id:
         description: "Redmine Issue ID"

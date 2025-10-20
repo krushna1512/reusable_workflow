@@ -11,6 +11,7 @@ on:
         description: "Redmine deployment note"
         required: true
         type: string
+        
 
 jobs:
   redmine_notification:
@@ -22,7 +23,7 @@ jobs:
 
     - name: Send Redmine Comment
       env:
-        REDMINE_ISSUE_ID: ${{ inputs.redmine_issue_id }}
+        REDMINE_ISSUE_ID: ${{ fromJson(inputs.redmine_issue_id) }}
         REDMINE_API_KEY: ${{ secrets.REDMINE_API_KEY }}
         DEPLOYMENT_NOTE: ${{ inputs.deployment_note }}
       run: |

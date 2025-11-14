@@ -3,7 +3,7 @@ name: Checks after deployment
 on:
   workflow_dispatch:
     inputs:
-      environment:
+      deploy-environment:
         description: "Deploy to environment"
         required: true
         type: choice
@@ -14,7 +14,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.deploy-environment }}
 
     steps:
       - name: Checkout code
@@ -27,11 +27,11 @@ jobs:
   post_deploy_test:
     runs-on: ubuntu-latest
     needs: deploy
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.deploy-environment }}
     steps:
       - name: Print environment and URL
         run: |
-          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Environment: ${{ github.event.inputs.deploy-environment }}"
           echo "Testing URL: ${{ vars.SITE_URL }}"
 
       - name: Wait for site to become available

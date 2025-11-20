@@ -1,0 +1,56 @@
+name: Deployment Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: 'Enter release name (e.g., v1.0.1)'
+        required: true
+        default: 'v1.0.0'
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Simulate Deployment (Random Success/Failure)
+        run: |
+          echo "Starting deployment for release: ${{ github.event.inputs.release_name }}"
+          if [ $(( RANDOM % 2 )) -eq 0 ]; then
+            echo "Deployment Successful"
+            echo "status=success" >> $GITHUB_ENV
+          else
+            echo "Deployment Failed"
+            echo "status=failure" >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Create GitHub Release (Only on success)
+        if: env.status == 'success'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.release_name }}         # 👈 Uses input
+          release_name: ${{ github.event.inputs.release_name }}    # 👈 Uses input
+          body: "Release created after successful deployment."
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Artifact (Only on success)
+        if: env.status == 'success'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./          # Replace with your build output folder
+          asset_name: build.zip
+          asset_content_type: application/zip

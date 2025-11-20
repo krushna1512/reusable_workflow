@@ -4,33 +4,38 @@ on:
   workflow_dispatch:
     inputs:
       release_name:
-        description: 'Enter existing tag or release name (e.g., v1.0.3)'
+        description: 'Enter release/tag name (e.g., v1.0.3)'
         required: true
+      simulate:
+        description: 'Should the deployment succeed or fail?'
+        required: true
+        default: 'success'
+        type: choice
+        options:
+          - success
+          - fail
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code using release tag (Do not validate)
+      - name: Checkout tag without validation
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.inputs.release_name }}   # 👈 Use as-is
+          ref: ${{ github.event.inputs.release_name }}
 
-      - name: Simulate Deployment (Random Success/Failure)
+      - name: Simulate Deployment (Based on input)
         run: |
-          echo "Deploying tag: ${{ github.event.inputs.release_name }}"
-          if [ $(( RANDOM % 2 )) -eq 0 ]; then
+          if [ "${{ github.event.inputs.simulate }}" = "success" ]; then
             echo "Deployment Successful"
-            echo "status=success" >> $GITHUB_ENV
           else
             echo "Deployment Failed"
-            echo "status=failure" >> $GITHUB_ENV
             exit 1
           fi
 
-      - name: Upload Artifact for Rollback (Only if successful)
-        if: env.status == 'success'
+      - name: Upload Artifact for Rollback (Only on success)
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: rollback-artifact

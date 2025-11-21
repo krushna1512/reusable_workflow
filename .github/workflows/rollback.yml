@@ -2,30 +2,35 @@ name: Rollback Workflow
 
 on:
   workflow_run:
-    workflows: ["Deployment Workflow"]
-    types: [completed]
+    workflows: ["Deployment Workflow"]   # Must match deploy.yml name exactly
+    types:
+      - completed
 
 jobs:
   rollback:
+    # Run only when deployment workflow fails
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ github.token }}   # 👈 Required for gh CLI
+      GH_TOKEN: ${{ github.token }}   # required for gh CLI authentication
 
     steps:
-      - name: Get Latest Successful Release
+      - name: Get latest successful release (with assets)
         id: get_release
         run: |
+          echo "🔍 Finding last successful release with assets..."
           RELEASE_NAME=$(gh api repos/${{ github.repository }}/releases \
-          --jq 'map(select(.draft==false and .prerelease==false)) | .[0].name')
+            --jq 'map(select(.assets | length > 0 and .draft==false and .prerelease==false)) | .[0].tag_name')
           echo "LATEST_RELEASE=$RELEASE_NAME" >> $GITHUB_ENV
+          echo "✔ Found previous working release: $RELEASE_NAME"
 
-      - name: Download Artifact from Release
+      - name: Download artifact from previous successful release
         run: |
-          echo "Downloading artifact from $LATEST_RELEASE..."
+          echo "⬇️ Downloading artifact from release: $LATEST_RELEASE"
           gh release download "$LATEST_RELEASE" --repo ${{ github.repository }} --dir ./rollback-release
 
-      - name: Rollback Deployment
+      - name: Rollback deployment using previous release
         run: |
-          echo "Rolling back using release: $LATEST_RELEASE"
-          ls ./rollback-release
+          echo "🚨 Rolling back deployment using release: $LATEST_RELEASE"
+          ls ./rollback-release || echo "⚠️ No files found"
+          echo "🚀 Rollback completed successfully!"

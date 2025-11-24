@@ -2,34 +2,40 @@ name: Rollback Workflow
 
 on:
   workflow_run:
-    workflows: ["Deployment Workflow"]   # Must match deploy.yml name exactly
+    workflows: ["Deployment Workflow"]
     types:
       - completed
 
 jobs:
   rollback:
-    # Run only when deployment workflow fails
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ github.token }}   # required for gh CLI authentication
+      GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Get latest successful release (with assets)
+      - name: Find previous successful release with assets
         id: get_release
         run: |
-          echo "🔍 Finding last successful release with assets..."
+          echo "🔍 Searching for latest successful release WITH assets..."
           RELEASE_NAME=$(gh api repos/${{ github.repository }}/releases \
-            --jq 'map(select(.assets | length > 0 and .draft==false and .prerelease==false)) | .[0].tag_name')
-          echo "LATEST_RELEASE=$RELEASE_NAME" >> $GITHUB_ENV
-          echo "✔ Found previous working release: $RELEASE_NAME"
+            --jq 'map(select(.assets | length > 0 and .draft == false and .prerelease == false)) | .[0].name')
 
-      - name: Download artifact from previous successful release
+          if [ -z "$RELEASE_NAME" ]; then
+            echo "❌ No previous successful release found with assets!"
+            echo "Rollback cannot proceed."
+            exit 1
+          fi
+
+          echo "✔ Found rollback release: $RELEASE_NAME"
+          echo "LATEST_RELEASE=$RELEASE_NAME" >> $GITHUB_ENV
+
+      - name: Download artifact from previous stable release
         run: |
           echo "⬇️ Downloading artifact from release: $LATEST_RELEASE"
-          gh release download "$LATEST_RELEASE" --repo ${{ github.repository }} --dir ./rollback-release
+          gh release download "$LATEST_RELEASE" --repo ${{ github.repository }} --dir ./rollback-release --clobber
 
-      - name: Rollback deployment using previous release
+      - name: Perform Rollback
         run: |
           echo "🚨 Rolling back deployment using release: $LATEST_RELEASE"
           ls ./rollback-release || echo "⚠️ No files found"

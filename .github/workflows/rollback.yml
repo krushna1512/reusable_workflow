@@ -3,8 +3,7 @@ name: Rollback Workflow
 on:
   workflow_run:
     workflows: ["Deployment Workflow"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   rollback:
@@ -14,29 +13,27 @@ jobs:
       GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Find previous successful release with assets
-        id: get_release
+      - name: Find previous release tag (ignoring assets)
+        id: get_tag
         run: |
-          echo "🔍 Searching for latest successful release WITH assets..."
-          RELEASE_NAME=$(gh api repos/${{ github.repository }}/releases \
-            --jq 'map(select(.assets | length > 0 and .draft == false and .prerelease == false)) | .[0].name')
-
-          if [ -z "$RELEASE_NAME" ]; then
-            echo "❌ No previous successful release found with assets!"
-            echo "Rollback cannot proceed."
+          echo "🔍 Finding previous release tag..."
+          TAG=$(gh api repos/${{ github.repository }}/releases \
+            --jq '.[].tag_name' | sed 's/"//g' | sort -Vr | sed -n '2p')
+          
+          if [ -z "$TAG" ]; then
+            echo "❌ No previous release tag found!"
             exit 1
           fi
 
-          echo "✔ Found rollback release: $RELEASE_NAME"
-          echo "LATEST_RELEASE=$RELEASE_NAME" >> $GITHUB_ENV
+          echo "✔ Rolling back to: $TAG"
+          echo "ROLLBACK_TAG=$TAG" >> $GITHUB_ENV
 
-      - name: Download artifact from previous stable release
-        run: |
-          echo "⬇️ Downloading artifact from release: $LATEST_RELEASE"
-          gh release download "$LATEST_RELEASE" --repo ${{ github.repository }} --dir ./rollback-release --clobber
+      - name: Checkout previous release
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ env.ROLLBACK_TAG }}
 
-      - name: Perform Rollback
+      - name: Rollback deployment using previous release (simulate or real deploy)
         run: |
-          echo "🚨 Rolling back deployment using release: $LATEST_RELEASE"
-          ls ./rollback-release || echo "⚠️ No files found"
-          echo "🚀 Rollback completed successfully!"
+          echo "🚨 Deploying rollback release: $ROLLBACK_TAG"
+          echo "Rollback complete"

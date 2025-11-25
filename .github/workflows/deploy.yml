@@ -14,10 +14,20 @@ on:
         options:
           - success
           - fail
+      environment:
+        description: 'Select deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ${{ github.event.inputs.environment }}   # 👈 Set as global env variable
 
     steps:
       - name: Checkout tag without validation
@@ -25,8 +35,14 @@ jobs:
         with:
           ref: ${{ github.event.inputs.release_name }}
 
+      - name: Show selected environment
+        run: |
+          echo "🚀 Starting deployment for environment: $ENVIRONMENT"
+          echo "📌 Using release/tag: ${{ github.event.inputs.release_name }}"
+
       - name: Simulate Deployment (Based on input)
         run: |
+          echo "🔹 Running deployment in: $ENVIRONMENT"
           if [ "${{ github.event.inputs.simulate }}" = "success" ]; then
             echo "Deployment Successful"
           else
@@ -38,5 +54,16 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: rollback-artifact
+          name: rollback-artifact-${{ env.ENVIRONMENT }}   # 👈 Artifact named per environment
           path: .
+
+      - name: Save environment for rollback tracking
+        if: success()
+        run: echo "${{ env.ENVIRONMENT }}" > environment.txt
+
+      - name: Upload Environment Info
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-environment
+          path: environment.txt

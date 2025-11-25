@@ -13,15 +13,12 @@ jobs:
       GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Detect environment (from failed workflow)
-        id: env_check
+      - name: Load environment from failed workflow
         run: |
-          ENVIRONMENT=$(echo "${{ github.event.workflow_run.display_title }}" | grep -oE 'production|staging' || echo "production")
-          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          echo "🔍 Detected environment: $ENVIRONMENT"
+          echo "ENVIRONMENT=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_ENV
+          echo "🔍 Detected deployment environment: $ENVIRONMENT"
 
-      - name: Find rollback release based on environment
-        id: find_release
+      - name: Find correct rollback release
         run: |
           echo "🔎 Searching rollback release for $ENVIRONMENT..."
 
@@ -34,19 +31,19 @@ jobs:
           fi
 
           if [ -z "$TAG" ]; then
-            echo "❌ No previous matching release found for environment: $ENVIRONMENT!"
+            echo "❌ No previous rollback release found for $ENVIRONMENT!"
             exit 1
           fi
 
           echo "✔ Selected rollback tag: $TAG"
           echo "ROLLBACK_TAG=$TAG" >> $GITHUB_ENV
 
-      - name: Checkout previous stable/pre-release tag
+      - name: Checkout previous release
         uses: actions/checkout@v3
         with:
           ref: ${{ env.ROLLBACK_TAG }}
 
-      - name: Perform rollback deployment
+      - name: Rollback Deployment
         run: |
-          echo "🚨 Rolling back deployment using release tag: $ROLLBACK_TAG"
-          echo "🚀 Rollback completed successfully!"
+          echo "🚨 Rolling back deployment using tag: $ROLLBACK_TAG"
+          echo "✔ Rollback completed successfully!"

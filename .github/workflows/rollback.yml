@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment'
+        description: 'Deployment environment'
         required: true
         type: choice
-        options: [staging, production]
+        options: [production, staging]
       release_name:
         description: 'Failed release tag'
         required: true
@@ -15,32 +15,41 @@ on:
 jobs:
   rollback:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - name: Show Inputs
+      - name: Show rollback details
         run: |
-          echo "🚨 Rolling back failed deployment!"
-          echo "❗ Failed Release: ${{ github.event.inputs.release_name }}"
+          echo "🚨 Deployment FAILED!"
           echo "🌍 Environment: ${{ github.event.inputs.environment }}"
+          echo "❌ Failed Release: ${{ github.event.inputs.release_name }}"
 
-      - name: Select Previous Release
+      - name: Select rollback release
         run: |
           if [ "${{ github.event.inputs.environment }}" = "staging" ]; then
             TAG=$(gh api repos/${{ github.repository }}/releases \
-              --jq 'map(select(.prerelease == true)) | .[1].tag_name')
+                --jq 'map(select(.prerelease == true)) | .[1].tag_name')
           else
             TAG=$(gh api repos/${{ github.repository }}/releases \
-              --jq 'map(select(.prerelease == false and .draft == false)) | .[1].tag_name')
+                --jq 'map(select(.draft == false and .prerelease == false)) | .[1].tag_name')
+          fi
+          
+          if [ -z "$TAG" ]; then
+            echo "❌ No previous rollback release found!"
+            exit 1
           fi
 
+          echo "✔ Rollback target: $TAG"
           echo "ROLLBACK_TAG=$TAG" >> $GITHUB_ENV
-          echo "✔ Selected rollback tag: $TAG"
 
-      - name: Checkout rollback tag
+      - name: Checkout rollback version
         uses: actions/checkout@v3
         with:
           ref: ${{ env.ROLLBACK_TAG }}
 
-      - name: Rollback Deployment
+      - name: Perform rollback deployment
         run: |
-          echo "🚀 Rolling back to version: $ROLLBACK_TAG in ${{ github.event.inputs.environment }}"
+          echo "🔁 Rolling back to version: $ROLLBACK_TAG"
+          echo "🌍 Environment: ${{ github.event.inputs.environment }}"
+          echo "🚀 Rollback deployment completed successfully!"

@@ -27,7 +27,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      ENVIRONMENT: ${{ github.event.inputs.environment }}   # 👈 Set as global env variable
+      ENVIRONMENT: ${{ github.event.inputs.environment }}
 
     steps:
       - name: Checkout tag without validation
@@ -40,9 +40,8 @@ jobs:
           echo "🚀 Starting deployment for environment: $ENVIRONMENT"
           echo "📌 Using release/tag: ${{ github.event.inputs.release_name }}"
 
-      - name: Simulate Deployment (Based on input)
+      - name: Simulate Deployment (Success/Fail)
         run: |
-          echo "🔹 Running deployment in: $ENVIRONMENT"
           if [ "${{ github.event.inputs.simulate }}" = "success" ]; then
             echo "Deployment Successful"
           else
@@ -54,14 +53,14 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: rollback-artifact-${{ env.ENVIRONMENT }}   # 👈 Artifact named per environment
+          name: rollback-artifact-${{ env.ENVIRONMENT }}
           path: .
 
-      - name: Save environment for rollback tracking
+      - name: Save environment for rollback
         if: success()
         run: echo "${{ env.ENVIRONMENT }}" > environment.txt
 
-      - name: Upload Environment Info
+      - name: Upload environment info
         if: success()
         uses: actions/upload-artifact@v4
         with:

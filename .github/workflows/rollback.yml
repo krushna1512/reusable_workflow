@@ -1,57 +1,46 @@
 name: Rollback Workflow
 
 on:
-  workflow_run:
-    workflows: ["Deployment Workflow"]
-    types: [completed]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: true
+        type: choice
+        options: [staging, production]
+      release_name:
+        description: 'Failed release tag'
+        required: true
 
 jobs:
   rollback:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Get ENVIRONMENT from most recent release
-        id: read_env
+      - name: Show Inputs
         run: |
-          ENVIRONMENT=$(gh api repos/${{ github.repository }}/releases \
-            --jq '.[0].body' | grep -oE 'Environment: (production|staging)' | awk '{print $2}')
-          
-          if [ -z "$ENVIRONMENT" ]; then
-            echo "❌ No environment found in release notes!"
-            exit 1
-          fi
+          echo "🚨 Rolling back failed deployment!"
+          echo "❗ Failed Release: ${{ github.event.inputs.release_name }}"
+          echo "🌍 Environment: ${{ github.event.inputs.environment }}"
 
-          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          echo "✔ Detected environment: $ENVIRONMENT"
-
-      - name: Select rollback tag based on environment
+      - name: Select Previous Release
         run: |
-          echo "🔎 Selecting rollback release for $ENVIRONMENT..."
-          if [ "$ENVIRONMENT" = "staging" ]; then
+          if [ "${{ github.event.inputs.environment }}" = "staging" ]; then
             TAG=$(gh api repos/${{ github.repository }}/releases \
               --jq 'map(select(.prerelease == true)) | .[1].tag_name')
           else
             TAG=$(gh api repos/${{ github.repository }}/releases \
-              --jq 'map(select(.prerelease == false)) | .[1].tag_name')
-          fi
-
-          if [ -z "$TAG" ]; then
-            echo "❌ No rollback release found!"
-            exit 1
+              --jq 'map(select(.prerelease == false and .draft == false)) | .[1].tag_name')
           fi
 
           echo "ROLLBACK_TAG=$TAG" >> $GITHUB_ENV
-          echo "✔ Using rollback tag: $TAG"
+          echo "✔ Selected rollback tag: $TAG"
 
-      - name: Checkout previous release
+      - name: Checkout rollback tag
         uses: actions/checkout@v3
         with:
           ref: ${{ env.ROLLBACK_TAG }}
 
-      - name: Perform Rollback
+      - name: Rollback Deployment
         run: |
-          echo "🚨 Rolling back to $ROLLBACK_TAG for $ENVIRONMENT"
-          echo "🚀 Rollback completed!"
+          echo "🚀 Rolling back to version: $ROLLBACK_TAG in ${{ github.event.inputs.environment }}"

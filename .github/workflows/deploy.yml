@@ -29,6 +29,7 @@ jobs:
     env:
       ENVIRONMENT: ${{ github.event.inputs.environment }}
       RELEASE_NAME: ${{ github.event.inputs.release_name }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -46,13 +47,13 @@ jobs:
             exit 1
           fi
 
-      - name: Trigger Rollback Workflow (if failed)
+      - name: Trigger Rollback (if failed) via GitHub API
         if: failure()
-        uses: peter-evans/workflow-dispatch@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: rollback.yml   # must match filename exactly
-          ref: main
-          inputs: |
-            environment: ${{ env.ENVIRONMENT }}
-            release_name: ${{ env.RELEASE_NAME }}
+        run: |
+          echo "💥 Deployment failed. Triggering rollback workflow..."
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/rollback.yml/dispatches \
+            -d "{\"ref\":\"main\",\"inputs\":{\"environment\":\"${{ env.ENVIRONMENT }}\",\"release_name\":\"${{ env.RELEASE_NAME }}\"}}"
+

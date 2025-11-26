@@ -13,19 +13,23 @@ jobs:
       GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Download environment for this failed run
-        uses: actions/download-artifact@v4
-        with:
-          name: deployment-info-${{ github.event.workflow_run.id }}
-
-      - name: Read environment value
+      - name: Get ENVIRONMENT from most recent release
+        id: read_env
         run: |
-          ENVIRONMENT=$(cat environment.txt)
+          ENVIRONMENT=$(gh api repos/${{ github.repository }}/releases \
+            --jq '.[0].body' | grep -oE 'Environment: (production|staging)' | awk '{print $2}')
+          
+          if [ -z "$ENVIRONMENT" ]; then
+            echo "❌ No environment found in release notes!"
+            exit 1
+          fi
+
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          echo "✔ Detected correct environment from failed deployment: $ENVIRONMENT"
+          echo "✔ Detected environment: $ENVIRONMENT"
 
-      - name: Select rollback release
+      - name: Select rollback tag based on environment
         run: |
+          echo "🔎 Selecting rollback release for $ENVIRONMENT..."
           if [ "$ENVIRONMENT" = "staging" ]; then
             TAG=$(gh api repos/${{ github.repository }}/releases \
               --jq 'map(select(.prerelease == true)) | .[1].tag_name')
@@ -33,16 +37,21 @@ jobs:
             TAG=$(gh api repos/${{ github.repository }}/releases \
               --jq 'map(select(.prerelease == false)) | .[1].tag_name')
           fi
-          
+
+          if [ -z "$TAG" ]; then
+            echo "❌ No rollback release found!"
+            exit 1
+          fi
+
           echo "ROLLBACK_TAG=$TAG" >> $GITHUB_ENV
-          echo "✔ Selected rollback tag: $TAG"
+          echo "✔ Using rollback tag: $TAG"
 
       - name: Checkout previous release
         uses: actions/checkout@v3
         with:
           ref: ${{ env.ROLLBACK_TAG }}
 
-      - name: Perform rollback deployment
+      - name: Perform Rollback
         run: |
-          echo "🚨 Rolling back deployment using tag: $ROLLBACK_TAG"
-          echo "🚀 Rollback completed successfully!"
+          echo "🚨 Rolling back to $ROLLBACK_TAG for $ENVIRONMENT"
+          echo "🚀 Rollback completed!"

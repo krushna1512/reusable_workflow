@@ -9,14 +9,19 @@ on:
       simulate:
         description: 'Should the deployment succeed or fail?'
         required: true
+        default: 'success'
         type: choice
-        options: [success, fail]
+        options:
+          - success
+          - fail
       environment:
         description: 'Select environment'
         required: true
         default: 'production'
         type: choice
-        options: [staging, production]
+        options:
+          - staging
+          - production
 
 jobs:
   deploy:
@@ -48,6 +53,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           workflow: Rollback Workflow.yml
           ref: main
-          inputs:
+          inputs: |
             environment: ${{ env.ENVIRONMENT }}
             release_name: ${{ env.RELEASE_NAME }}

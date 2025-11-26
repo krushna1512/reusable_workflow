@@ -3,7 +3,8 @@ name: Rollback Workflow
 on:
   workflow_run:
     workflows: ["Deployment Workflow"]
-    types: [completed]
+    types:
+      - completed
 
 jobs:
   rollback:
@@ -13,9 +14,15 @@ jobs:
       GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Load environment from failed workflow
+      - name: Download environment info
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-environment
+
+      - name: Load environment
         run: |
-          echo "ENVIRONMENT=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_ENV
+          ENVIRONMENT=$(cat environment.txt)
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
           echo "🔍 Detected deployment environment: $ENVIRONMENT"
 
       - name: Find correct rollback release
@@ -31,7 +38,7 @@ jobs:
           fi
 
           if [ -z "$TAG" ]; then
-            echo "❌ No previous rollback release found for $ENVIRONMENT!"
+            echo "❌ No previous rollback release found for: $ENVIRONMENT"
             exit 1
           fi
 
@@ -43,7 +50,8 @@ jobs:
         with:
           ref: ${{ env.ROLLBACK_TAG }}
 
-      - name: Rollback Deployment
+      - name: Perform rollback deployment
         run: |
           echo "🚨 Rolling back deployment using tag: $ROLLBACK_TAG"
-          echo "✔ Rollback completed successfully!"
+          echo "⚙️ Deployment started for rollback tag: $ROLLBACK_TAG"
+          echo "🚀 Rollback completed successfully!"

@@ -3,8 +3,7 @@ name: Rollback Workflow
 on:
   workflow_run:
     workflows: ["Deployment Workflow"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   rollback:
@@ -14,25 +13,16 @@ jobs:
       GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Get deployment environment from last release
+      - name: Get Deployment Environment (staging or production)
         id: get_env
         run: |
-          echo "🔍 Reading environment from last release metadata..."
-          ENVIRONMENT=$(gh api repos/${{ github.repository }}/releases \
-            --jq '.[0].body' | grep -oE 'Environment: (staging|production)' | awk '{print $2}')
-          
-          if [ -z "$ENVIRONMENT" ]; then
-            echo "❌ Environment not found in release notes!"
-            exit 1
-          fi
-
+          ENVIRONMENT=$(gh api repos/${{ github.repository }}/deployments \
+            --jq '.[0].environment')
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
           echo "✔ Detected environment: $ENVIRONMENT"
 
-      - name: Select rollback tag based on environment
+      - name: Select rollback release
         run: |
-          echo "🔎 Searching rollback release for $ENVIRONMENT..."
-
           if [ "$ENVIRONMENT" = "staging" ]; then
             TAG=$(gh api repos/${{ github.repository }}/releases \
               --jq 'map(select(.prerelease == true)) | .[1].tag_name')
@@ -40,9 +30,9 @@ jobs:
             TAG=$(gh api repos/${{ github.repository }}/releases \
               --jq 'map(select(.prerelease == false)) | .[1].tag_name')
           fi
-
+          
           if [ -z "$TAG" ]; then
-            echo "❌ No previous rollback tag found!"
+            echo "❌ No previous rollback release found!"
             exit 1
           fi
 
@@ -54,7 +44,7 @@ jobs:
         with:
           ref: ${{ env.ROLLBACK_TAG }}
 
-      - name: Perform rollback deployment
+      - name: Rollback Deployment
         run: |
           echo "🚨 Rolling back deployment using tag: $ROLLBACK_TAG"
-          echo "🚀 Rollback complete!"
+          echo "🚀 Rollback completed successfully!"

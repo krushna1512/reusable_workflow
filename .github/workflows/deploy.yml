@@ -9,39 +9,31 @@ on:
       simulate:
         description: 'Should the deployment succeed or fail?'
         required: true
-        default: 'success'
         type: choice
-        options:
-          - success
-          - fail
+        options: [success, fail]
       environment:
-        description: 'Select deployment environment'
+        description: 'Select environment'
         required: true
         default: 'production'
         type: choice
-        options:
-          - production
-          - staging
+        options: [staging, production]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       ENVIRONMENT: ${{ github.event.inputs.environment }}
+      RELEASE_NAME: ${{ github.event.inputs.release_name }}
 
     steps:
-      - name: Checkout tag without validation
+      - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.inputs.release_name }}
+          ref: ${{ env.RELEASE_NAME }}
 
-      - name: Show selected environment
+      - name: Simulate Deployment
         run: |
-          echo "🚀 Starting deployment for environment: $ENVIRONMENT"
-          echo "📌 Using release/tag: ${{ github.event.inputs.release_name }}"
-
-      - name: Simulate Deployment (Success/Fail)
-        run: |
+          echo "🚀 Deploying $RELEASE_NAME to $ENVIRONMENT..."
           if [ "${{ github.event.inputs.simulate }}" = "success" ]; then
             echo "Deployment Successful"
           else
@@ -49,20 +41,13 @@ jobs:
             exit 1
           fi
 
-      - name: Upload Artifact for Rollback (Only on success)
-        if: success()
-        uses: actions/upload-artifact@v4
+      - name: Trigger Rollback on Failure
+        if: failure()
+        uses: peter-evans/workflow-dispatch@v2
         with:
-          name: rollback-artifact-${{ env.ENVIRONMENT }}
-          path: .
-
-      - name: Save environment for rollback
-        if: success()
-        run: echo "${{ env.ENVIRONMENT }}" > environment.txt
-
-      - name: Upload environment info
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-environment
-          path: environment.txt
+          token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: Rollback Workflow.yml
+          ref: main
+          inputs:
+            environment: ${{ env.ENVIRONMENT }}
+            release_name: ${{ env.RELEASE_NAME }}

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_name:
-        description: 'Enter release/tag name (e.g., v1.0.3)'
+        description: 'Enter release/tag name (e.g., v1.2.0)'
         required: true
       simulate:
         description: 'Should the deployment succeed or fail?'
@@ -15,13 +15,13 @@ on:
           - success
           - fail
       environment:
-        description: 'Select environment'
+        description: 'Select deployment environment'
         required: true
         default: 'production'
         type: choice
         options:
-          - staging
           - production
+          - staging
 
 jobs:
   deploy:
@@ -40,19 +40,19 @@ jobs:
         run: |
           echo "🚀 Deploying $RELEASE_NAME to $ENVIRONMENT..."
           if [ "${{ github.event.inputs.simulate }}" = "success" ]; then
-            echo "Deployment Successful"
+            echo "🚀 Deployment Successful!"
           else
-            echo "Deployment Failed"
+            echo "💥 Deployment Failed!"
             exit 1
           fi
 
-      - name: Trigger Rollback on Failure
+      - name: Trigger Rollback Workflow (if deployment fails)
         if: failure()
         uses: peter-evans/workflow-dispatch@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: Rollback Workflow.yml
-          ref: main
+          workflow: rollback.yml        # Must match rollback file name
+          ref: main                     # Branch containing rollback.yml
           inputs: |
             environment: ${{ env.ENVIRONMENT }}
             release_name: ${{ env.RELEASE_NAME }}

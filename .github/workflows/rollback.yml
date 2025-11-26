@@ -13,13 +13,16 @@ jobs:
       GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Get Deployment Environment (staging or production)
-        id: get_env
+      - name: Download environment for this failed run
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-info-${{ github.event.workflow_run.id }}
+
+      - name: Read environment value
         run: |
-          ENVIRONMENT=$(gh api repos/${{ github.repository }}/deployments \
-            --jq '.[0].environment')
+          ENVIRONMENT=$(cat environment.txt)
           echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          echo "✔ Detected environment: $ENVIRONMENT"
+          echo "✔ Detected correct environment from failed deployment: $ENVIRONMENT"
 
       - name: Select rollback release
         run: |
@@ -31,11 +34,6 @@ jobs:
               --jq 'map(select(.prerelease == false)) | .[1].tag_name')
           fi
           
-          if [ -z "$TAG" ]; then
-            echo "❌ No previous rollback release found!"
-            exit 1
-          fi
-
           echo "ROLLBACK_TAG=$TAG" >> $GITHUB_ENV
           echo "✔ Selected rollback tag: $TAG"
 
@@ -44,7 +42,7 @@ jobs:
         with:
           ref: ${{ env.ROLLBACK_TAG }}
 
-      - name: Rollback Deployment
+      - name: Perform rollback deployment
         run: |
           echo "🚨 Rolling back deployment using tag: $ROLLBACK_TAG"
           echo "🚀 Rollback completed successfully!"

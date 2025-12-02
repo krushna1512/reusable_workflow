@@ -26,30 +26,38 @@ jobs:
           echo "❌ Failed Release: ${{ github.event.inputs.release_name }}"
 
       - name: Select rollback release
+        id: find_tag
         run: |
+          echo "🔎 Finding previous release for rollback..."
+
           if [ "${{ github.event.inputs.environment }}" = "staging" ]; then
             TAG=$(gh api repos/${{ github.repository }}/releases \
-                --jq 'map(select(.prerelease == true)) | .[1].tag_name')
+                --jq 'map(select(.prerelease == true and .draft == false)) | .[1].tag_name')
           else
             TAG=$(gh api repos/${{ github.repository }}/releases \
-                --jq 'map(select(.draft == false and .prerelease == false)) | .[1].tag_name')
+                --jq 'map(select(.prerelease == false and .draft == false)) | .[1].tag_name')
           fi
-          
+
           if [ -z "$TAG" ]; then
-            echo "❌ No previous rollback release found!"
+            echo "❌ No rollback tag found!"
             exit 1
           fi
 
-          echo "✔ Rollback target: $TAG"
-          echo "ROLLBACK_TAG=$TAG" >> $GITHUB_ENV
+          echo "rollback_tag=$TAG" >> $GITHUB_OUTPUT
+          echo "✔ Selected rollback target: $TAG"
 
-      - name: Checkout rollback version
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ env.ROLLBACK_TAG }}
-
-      - name: Perform rollback deployment
+      - name: Trigger Deployment Workflow (Rollback)
         run: |
-          echo "🔁 Rolling back to version: $ROLLBACK_TAG"
-          echo "🌍 Environment: ${{ github.event.inputs.environment }}"
-          echo "🚀 Rollback deployment completed successfully!"
+          echo "🚀 Triggering deployment workflow with rollback tag..."
+
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy.yml/dispatches \
+            -d "{\"ref\":\"main\",\"inputs\":{
+              \"release\":\"${{ steps.find_tag.outputs.rollback_tag }}\",
+              \"deploy-environment\":\"${{ github.event.inputs.environment }}\",
+              \"issue-id\":\"0\"
+            }}"
+
+          echo "✔ Rollback deployment triggered using deploy workflow!"
